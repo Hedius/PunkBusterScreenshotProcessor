@@ -1,7 +1,7 @@
 import logging
 from io import BytesIO
 
-from src.FTP.FTPBase import FTPBase
+from FTP.FTPBase import FTPBase
 
 
 class DestinationFTP(FTPBase):
