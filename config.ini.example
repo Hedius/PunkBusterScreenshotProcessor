@@ -1,0 +1,37 @@
+[General]
+check_interval = 60
+
+[AdKatsDB]
+host=
+port=3306
+user=
+pw=
+database=e4gl_procon
+
+[Destination]
+host=
+port=21
+user=
+pw=
+# Public webserver URL
+public_base=https://bla.com/screenshots/
+# Directory for file uploads
+upload_dir=/
+# Use TLS?
+tls=true
+
+[Server1]
+host=
+port=21
+user=
+pw=
+# Directory on the gameserver FTP where punkbuster screenshots are stored
+base_dir=pb/svss
+
+# repeat for each server. ID has to match with the ID in tbl_server
+[Server2]
+host=
+port=21
+user=
+pw=
+base_dir=pb/svss

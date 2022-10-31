@@ -1,0 +1,14 @@
+version: '2.4'
+services:
+  logger:
+    image: registry.gitlab.com/e4gl/punkbusterscreenshotprocessor:latest
+    userns_mode: "host"
+    restart: unless-stopped
+    volumes:
+      - type: bind
+        source: ./config.ini
+        target: /usr/src/app/config.ini
+    security_opt:
+      - no-new-privileges
+    mem_limit: 1000M
+    mem_reservation: 500M
