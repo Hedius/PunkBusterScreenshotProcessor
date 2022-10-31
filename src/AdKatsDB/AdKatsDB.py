@@ -30,14 +30,14 @@ class AdKatsDB(Connector):
                 SET @error_text = 'Failed to insert screenshot. Unknown Punkbuster ID';
                 RETURN @error_text;
             END IF;
-            
+
             -- get server_id
             SELECT ServerID INTO @server_id FROM tbl_server s WHERE s.ServerID = server_id;
             IF @server_id IS NULL THEN
                 SET @error_text = 'Invalid server ID given';
                 RETURN @error_text;
             END IF;
-            
+
             INSERT INTO e4gl_screenshots(server_id, player_id, timestamp, url)
             VALUES(@server_id, @player_id, pb_timestamp, public_url);
             RETURN @error_text;

@@ -6,7 +6,7 @@ host=
 port=3306
 user=
 pw=
-database=e4gl_procon
+database=
 
 [Destination]
 host=

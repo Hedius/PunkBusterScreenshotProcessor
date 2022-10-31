@@ -86,9 +86,9 @@ def get_screenshots_to_fetch(data, min_timestamp):
             continue
 
         screenshots_to_fetch[screenshot_id] = {
-                'id': screenshot_id,
-                'name': name,
-                'pb_guid': pb_guid,
-                'timestamp': timestamp
+            'id': screenshot_id,
+            'name': name,
+            'pb_guid': pb_guid,
+            'timestamp': timestamp
         }
     return screenshots_to_fetch
