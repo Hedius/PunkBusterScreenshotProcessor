@@ -47,7 +47,7 @@ class Processor:
 
                     for screenshot_id in screenshots:
                         data = screenshots[screenshot_id]
-                        if data['data'] is None:
+                        if 'data' not in data:
                             continue
                         guid = uuid.uuid4()
                         url = f'{self.destination.public_base.rstrip("/")}/{guid}.jpg'
