@@ -58,7 +58,7 @@ class SourceFTP(FTPBase):
                     f'Failed to fetch {file_name} from {self.server_id} - Ignoring: {e}')
                 continue
             image = Image.open(BytesIO(data))
-            side_crop = 140
+            side_crop = 180
             result = image.crop((side_crop, 0, image.width - side_crop, 200))
 
             processed_data = BytesIO()
