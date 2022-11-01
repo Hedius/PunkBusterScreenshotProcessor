@@ -54,7 +54,8 @@ class SourceFTP(FTPBase):
             try:
                 data = self.read_binary(ftp, file_name)
             except Exception as e:
-                logging.critical(f'Failed to fetch {file_name} from {self.server_id} - Ignoring: {e}')
+                logging.critical(
+                    f'Failed to fetch {file_name} from {self.server_id} - Ignoring: {e}')
                 continue
             image = Image.open(BytesIO(data))
             side_crop = 100
