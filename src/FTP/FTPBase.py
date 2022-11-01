@@ -64,5 +64,5 @@ class FTPBase:
         def handle_text(more_data):
             data.append(more_data)
         data = []
-        ftp.retrlines(f'RETR {name}', callback=handle_text)
+        ftp.retrlines(name, callback=handle_text)
         return data

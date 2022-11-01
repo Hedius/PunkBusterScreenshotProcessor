@@ -1,6 +1,7 @@
 import logging
 import re
 from datetime import datetime
+from dateutil import parser
 from io import BytesIO
 
 from PIL import Image
@@ -35,7 +36,7 @@ class SourceFTP(FTPBase):
         """
         ftp = self.connect()
         try:
-            data = self.read_text(ftp, 'pbsvss.htm')
+            data = ftp.mlsd()
             screenshots = get_screenshots_to_fetch(data, min_timestamp)
             self.fetch_screenshots(ftp, screenshots)
         finally:
@@ -49,8 +50,7 @@ class SourceFTP(FTPBase):
         :param screenshots:
         :return:
         """
-        for screenshot_id in screenshots:
-            file_name = f'pb{screenshot_id}.png'
+        for file_name in screenshots:
             try:
                 data = self.read_binary(ftp, file_name)
             except Exception as e:
@@ -65,9 +65,9 @@ class SourceFTP(FTPBase):
 
             processed_data = BytesIO()
             result.save(processed_data, format='JPEG')
-            screenshots[screenshot_id]['pb_guid'] = match.group(1)
-            screenshots[screenshot_id]['name'] = match.group(2)
-            screenshots[screenshot_id]['data'] = processed_data.getvalue()
+            screenshots[file_name]['pb_guid'] = match.group(1)
+            screenshots[file_name]['name'] = match.group(2)
+            screenshots[file_name]['data'] = processed_data.getvalue()
         return screenshots
 
 
@@ -80,22 +80,14 @@ def get_screenshots_to_fetch(data, min_timestamp):
     :return:
     """
     screenshots_to_fetch = {}
-    for line in data:
-        match = re.match(r'^.*blank>(.+)</a>\s+"(.+)".*GUID=(.+)\(-\)\s\[(.+)]$', line)
-        if not match:
+    for file in data:
+        name = file[0]
+        if not name.endswith('png'):
             continue
-        screenshot_id = match.group(1)
-        name = match.group(2)
-        pb_guid = match.group(3)
-        timestamp = datetime.strptime(match.group(4), '%Y.%m.%d %H:%M:%S')
-
+        timestamp = parser.parse(file[1]['modify'])
         if timestamp <= min_timestamp:
             continue
-
-        screenshots_to_fetch[screenshot_id] = {
-            'id': screenshot_id,
-            'name': name,
-            'pb_guid': pb_guid,
+        screenshots_to_fetch[name] = {
             'timestamp': timestamp
         }
     return screenshots_to_fetch
