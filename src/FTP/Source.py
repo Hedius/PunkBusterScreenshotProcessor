@@ -1,3 +1,4 @@
+import logging
 import re
 from datetime import datetime
 from io import BytesIO
@@ -50,7 +51,11 @@ class SourceFTP(FTPBase):
         """
         for screenshot_id in screenshots:
             file_name = f'pb{screenshot_id}.png'
-            data = self.read_binary(ftp, file_name)
+            try:
+                data = self.read_binary(ftp, file_name)
+            except Exception as e:
+                logging.critical(f'Failed to fetch {file_name} from {self.server_id} - Ignoring: {e}')
+                continue
             image = Image.open(BytesIO(data))
             side_crop = 100
             result = image.crop((side_crop, 0, image.width - side_crop, 220))
