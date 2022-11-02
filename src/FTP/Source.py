@@ -58,7 +58,7 @@ class SourceFTP(FTPBase):
                 continue
             image = Image.open(BytesIO(data))
             comment = image.info['comment'].split('\n')
-            match = re.match(r'^\*(.+)\*\s(.+)', comment[2])
+            match = re.match(r'^\*(.+)\*\s(.+)?', comment[2])
             side_crop = 140
             result = image.crop((side_crop, 0, image.width - side_crop, 220))
 
