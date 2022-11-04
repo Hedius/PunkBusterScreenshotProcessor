@@ -67,6 +67,7 @@ class SourceFTP(FTPBase):
             screenshots[file_name]['pb_guid'] = match.group(1)
             screenshots[file_name]['name'] = match.group(2)
             screenshots[file_name]['data'] = processed_data.getvalue()
+            screenshots[file_name]['data_full'] = data
         return screenshots
 
 
