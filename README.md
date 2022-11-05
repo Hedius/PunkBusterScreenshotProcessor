@@ -8,7 +8,12 @@
 1. Pull punkbuster screenshots from several servers over FTP.
 2. Convert them to JPEG and crop them to remove the integrated text information.
 3. Upload them to a destination FTP/FTPs server with a random guid.
+   1. The root folder contains the cropped version. Furthermore, the full
+      screenshot is placed in the subfolder **full**.
 4. Store the date in a table in the PRoCon DB.
+5. Removes screenshots after X days. (default 60).
+   1. The tuple is deleted from the DB and both files are deleted.
+   2. The screenshots of banned players are preserved.
 
 This can be used for viewing the screenshots of your players.
 You can then integrate this into your BFACP or to your discord like we did.
@@ -60,7 +65,13 @@ create index e4gl_screenshots_player_id_timestamp_index
 ## 1. Config file -> Mount to /usr/src/app/config.ini within docker
 ```ini
 [General]
+# how often to check the source FTP servers for new
+# files
 check_interval = 60
+
+# remove old screenshots after x days
+# screenshots of banned players are never removed
+cleanup_after_days = 60
 
 [AdKatsDB]
 host=
