@@ -1,4 +1,5 @@
 import logging
+from ftplib import error_perm
 from io import BytesIO
 
 from FTP.FTPBase import FTPBase
@@ -37,7 +38,7 @@ class DestinationFTP(FTPBase):
             ftp = self.connect()
             try:
                 ftp.mkd(full_dir)
-            except:
+            except error_perm:
                 pass
         directory = f'{full_dir}/' if full else ''
         ftp.storbinary(f'STOR {directory}{guid}.jpg', BytesIO(data))
