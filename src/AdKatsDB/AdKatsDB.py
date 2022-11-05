@@ -65,6 +65,31 @@ class AdKatsDB(Connector):
         timestamp = result[0][0]
         return timestamp
 
+    def cleanup_screenshots(self, cleanup_after: int):
+        """
+        Get outdated screenshots which can be deleted.
+        Also remove them from the DB.
+
+        Screenshots of banned players are never deleted.
+        :param cleanup_after:
+        """
+        command = """\
+        SELECT screenshot_id, url
+        FROM e4gl_screenshots es
+        LEFT OUTER JOIN adkats_bans ab on es.player_id = ab.player_id
+        WHERE DATE_SUB(NOW(), INTERVAL %s DAY) >= timestamp
+        AND (ab.ban_status != 'Active' or ban_status is null)
+        """
+        result = self.exec(command, (cleanup_after,))
+        command = """\
+        DELETE FROM e4gl_screenshots
+        WHERE screenshot_id = %s
+        """
+        for screenshot in result:
+            self.exec(command, (screenshot.screenshot_id,))
+            logging.info(f'Cleanup> Removed {screenshot.url} from the DB.')
+        return result
+
     def add_screenshot(self, server_id, pb_guid, timestamp, url):
         """
         Insert the given screenshot to the procon database.

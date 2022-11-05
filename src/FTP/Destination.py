@@ -1,6 +1,8 @@
 import logging
+import re
 from ftplib import error_perm
 from io import BytesIO
+from typing import List
 
 from FTP.FTPBase import FTPBase
 
@@ -43,4 +45,26 @@ class DestinationFTP(FTPBase):
         directory = f'{full_dir}/' if full else ''
         ftp.storbinary(f'STOR {directory}{guid}.jpg', BytesIO(data))
         logging.debug(f'Saved screenshot for {guid} over FTP.')
+        return ftp
+
+    def cleanup_screenshots(self, to_delete: List, ftp=None):
+        """
+        Remove the given files from the disk over FTP.
+        :param to_delete: list containing screenshots
+        :param ftp: optional ftp socket
+        :return: open ftp socket
+        """
+        if not ftp:
+            ftp = self.connect()
+        for screenshot in to_delete:
+            match = re.match(r'.*/([^/]+)$', screenshot.url)
+            file = match.group(1)
+
+            try:
+                ftp.delete(file)
+                ftp.delete(f'full/{file}')
+                logging.info(f'Cleanup> Removed {screenshot.url} from the file system.')
+            except error_perm as e:
+                logging.info(f'Cleanup> Failed to remove screenshot from file system: {e}.')
+
         return ftp

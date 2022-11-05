@@ -1,5 +1,10 @@
 [General]
+# seconds
 check_interval = 60
+
+# remove old screenshots after x days
+# screenshots of banned players are never removed
+cleanup_after_days = 60
 
 [AdKatsDB]
 host=

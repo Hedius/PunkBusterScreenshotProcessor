@@ -13,18 +13,21 @@ from FTP.Destination import DestinationFTP
 
 class Processor:
     def __init__(self, adk: AdKatsDB, sources: List[SourceFTP], destination: DestinationFTP,
-                 check_interval=60):
+                 check_interval=60, cleanup_after=60):
         """
         Init Processor
         :param adk:
         :param sources:
         :param destination:
         :param check_interval: repeat checks every x seconds
+        :param cleanup_after: cleanup screenshots after X days
         """
         self.adk = adk
         self.sources = sources
         self.destination = destination
         self.check_interval = check_interval
+
+        self.cleanup_after = cleanup_after
 
     def run(self):
         """
@@ -63,13 +66,17 @@ class Processor:
                                                                       full=True)
                         self.adk.add_screenshot(source.server_id, data['pb_guid'],
                                                 data['timestamp'], url)
+
+                to_delete = self.adk.cleanup_screenshots(self.cleanup_after)
+                ftp_dest = self.destination.cleanup_screenshots(to_delete, ftp_dest)
             finally:
                 if ftp_dest:
                     ftp_dest.quit()
             time.sleep(self.check_interval)
 
 
-def read_config(file_path: Path) -> Tuple[int, AdKatsDB, List[SourceFTP], DestinationFTP]:
+def read_config(file_path: Path) -> Tuple[int, int, AdKatsDB,
+                                          List[SourceFTP], DestinationFTP]:
     """
     Read the config
     :param file_path:
@@ -80,6 +87,7 @@ def read_config(file_path: Path) -> Tuple[int, AdKatsDB, List[SourceFTP], Destin
 
     section = parser['General']
     check_interval = section.getint('check_interval', 60)
+    cleanup_after = section.getint('cleanup_after_days', 60)
 
     section = parser['AdKatsDB']
     adk = AdKatsDB(
@@ -119,7 +127,7 @@ def read_config(file_path: Path) -> Tuple[int, AdKatsDB, List[SourceFTP], Destin
     if len(sources) == 0:
         raise RuntimeError('At least one source is needed!')
 
-    return check_interval, adk, sources, destination
+    return check_interval, cleanup_after, adk, sources, destination
 
 
 def main():
@@ -133,9 +141,11 @@ def main():
     )
     args = parser.parse_args()
 
-    check_interval, adk, sources, destination = read_config(args.config)
+    (check_interval, cleanup_after, adk, sources, destination) = \
+        read_config(args.config)
 
-    worker = Processor(adk, sources, destination, check_interval)
+    worker = Processor(adk, sources, destination, check_interval,
+                       cleanup_after)
     worker.run()
 
 
