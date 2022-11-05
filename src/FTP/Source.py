@@ -57,6 +57,9 @@ class SourceFTP(FTPBase):
                     f'Failed to fetch {file_name} from {self.server_id} - Ignoring: {e}')
                 continue
             image = Image.open(BytesIO(data))
+            full_data = BytesIO()
+            image.save(full_data, format='JPEG')
+
             comment = image.info['comment'].split('\n')
             match = re.match(r'^\*(.+)\*\s(.+)?', comment[2])
             side_crop = 140
@@ -64,10 +67,10 @@ class SourceFTP(FTPBase):
 
             processed_data = BytesIO()
             result.save(processed_data, format='JPEG')
+
             screenshots[file_name]['pb_guid'] = match.group(1)
-            screenshots[file_name]['name'] = match.group(2)
             screenshots[file_name]['data'] = processed_data.getvalue()
-            screenshots[file_name]['data_full'] = data
+            screenshots[file_name]['data_full'] = full_data.getvalue()
         return screenshots
 
 
