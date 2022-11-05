@@ -52,9 +52,15 @@ class Processor:
                         guid = uuid.uuid4()
                         url = f'{self.destination.public_base.rstrip("/")}/{guid}.jpg'
 
+                        # cropped screenshot
                         ftp_dest = self.destination.upload_screenshot(guid,
                                                                       data['data'],
                                                                       ftp=ftp_dest)
+                        # full sized screenshot
+                        ftp_dest = self.destination.upload_screenshot(guid,
+                                                                      data['data_full'],
+                                                                      ftp=ftp_dest,
+                                                                      full=True)
                         self.adk.add_screenshot(source.server_id, data['pb_guid'],
                                                 data['timestamp'], url)
             finally:
