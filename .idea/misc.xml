@@ -3,5 +3,8 @@
   <component name="AhkProjectSettings">
     <option name="defaultAhkSdk" value="AutoHotkey v1.1" />
   </component>
-  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.10 (PunkBusterScreenshotProcessor)" project-jdk-type="Python SDK" />
+  <component name="Black">
+    <option name="sdkName" value="Python 3.11 (punkbusterscreenshotprocessor)" />
+  </component>
+  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.12 (punkbusterscreenshotprocessor)" project-jdk-type="Python SDK" />
 </project>
