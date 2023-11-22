@@ -3,44 +3,37 @@ stages:
   - code quality
   - build
 
+variables:
+  DOCKER_HUB_REPO: "hedius/punkbusterscreenshotprocessor"
+
 Pylama:
- stage: code quality
- tags:
-   - docker
- script:
-   - python -m pip install pylama
-   - pylama src
-
-docker-build-main:
-  # Official docker image.
-  image: docker:latest
-  stage: build
-  tags:
-    - docker_build
-  services:
-    - docker:dind
-  before_script:
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
-  script:
-    - docker build --pull -t "$CI_REGISTRY_IMAGE" .
-    - docker push "$CI_REGISTRY_IMAGE"
-  only:
-    - main
-
-docker-build-dev:
-  # Official docker image.
-  image: docker:latest
-  stage: build
+  stage: code quality
   tags:
     - docker
+  script:
+    - python -m pip install pylama
+    - pylama src
+
+docker-build:
+  # Official docker image.
+  image: docker:latest
+  stage: build
   services:
     - docker:dind
   before_script:
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker login -u "$DOCKER_HUB_USERNAME" -p "$DOCKER_HUB_PASSWORD"
   script:
-    - docker build --pull -t "$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG" .
-    # - docker push "$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG"
-  except:
-    - main
-    - develop
-
+    - docker build --pull -t "$CI_REGISTRY_IMAGE" .
+    - |
+      if [ -z "$CI_COMMIT_TAG" ]; then
+        TAG="latest"
+      else
+        TAG="$CI_COMMIT_TAG"
+      fi
+    - docker tag $REGISTRY_IMAGE_NAME $REGISTRY_IMAGE_NAME:$TAG
+    - docker push $REGISTRY_IMAGE_NAME:$TAG
+    - docker tag $REGISTRY_IMAGE_NAME:$TAG $DOCKER_HUB_REPO:$TAG
+    - docker push $DOCKER_HUB_REPO:$TAG
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
