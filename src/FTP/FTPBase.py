@@ -29,7 +29,8 @@ class FTPBase:
         Changes directory to the given base dir if configured.
         :return: ftp socket
         """
-        ftp = FTP_TLS() if self._tls else FTP()
+        timeout = 30
+        ftp = FTP_TLS(timeout=timeout) if self._tls else FTP(timeout=timeout)
         ftp.connect(self._host, self._port)
         ftp.login(self._user, self._pw)
         if self._base_dir:
