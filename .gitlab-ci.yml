@@ -24,16 +24,13 @@ docker-build:
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
     - docker login -u "$DOCKER_HUB_USERNAME" -p "$DOCKER_HUB_PASSWORD"
   script:
-    - docker build --pull -t "$CI_REGISTRY_IMAGE" .
-    - |
-      if [ -z "$CI_COMMIT_TAG" ]; then
-        TAG="latest"
+    - if [ -z "$CI_COMMIT_TAG" ]; then
+      TAG="latest"
       else
-        TAG="$CI_COMMIT_TAG"
+      TAG="$CI_COMMIT_TAG"
       fi
-    - docker tag $REGISTRY_IMAGE_NAME $REGISTRY_IMAGE_NAME:$TAG
-    - docker push $REGISTRY_IMAGE_NAME:$TAG
-    - docker tag $REGISTRY_IMAGE_NAME:$TAG $DOCKER_HUB_REPO:$TAG
+    - docker build --pull -t "$CI_REGISTRY_IMAGE:$TAG" -t "$DOCKER_HUB_PASSWORD:$TAG" .
+    - docker push $CI_REGISTRY_IMAGE:$TAG
     - docker push $DOCKER_HUB_REPO:$TAG
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
