@@ -49,8 +49,8 @@ class Processor:
                         last_timestamp = self.adk.get_latest_timestamp(source.server_id)
                         screenshots = source.fetch(last_timestamp)
                     except Exception as e:
-                        logging.critical(f'Failed to fetch server {source.server_id}'
-                                         f'Skipping it. - Error: {e}')
+                        logging.critical(f'Failed to fetch server {source.server_id}!'
+                                         f' Skipping it. - Error: {e}')
                         continue
 
                     for screenshot_id in screenshots:
