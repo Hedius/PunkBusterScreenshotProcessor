@@ -4,11 +4,11 @@ import uuid
 from argparse import ArgumentParser
 from configparser import ConfigParser
 from pathlib import Path
-from typing import Tuple, List
+from typing import List, Tuple
 
 from AdKatsDB.AdKatsDB import AdKatsDB
-from FTP.Source import SourceFTP
 from FTP.Destination import DestinationFTP
+from FTP.Source import SourceFTP
 
 
 class Processor:
@@ -45,8 +45,13 @@ class Processor:
             ftp_dest = None
             try:
                 for source in self.sources:
-                    last_timestamp = self.adk.get_latest_timestamp(source.server_id)
-                    screenshots = source.fetch(last_timestamp)
+                    try:
+                        last_timestamp = self.adk.get_latest_timestamp(source.server_id)
+                        screenshots = source.fetch(last_timestamp)
+                    except Exception as e:
+                        logging.critical(f'Failed to fetch server {source.server_id}'
+                                         f'Skipping it. - Error: {e}')
+                        continue
 
                     for screenshot_id in screenshots:
                         data = screenshots[screenshot_id]
@@ -75,8 +80,7 @@ class Processor:
             time.sleep(self.check_interval)
 
 
-def read_config(file_path: Path) -> Tuple[int, int, AdKatsDB,
-                                          List[SourceFTP], DestinationFTP]:
+def read_config(file_path: Path) -> Tuple[int, int, AdKatsDB, List[SourceFTP], DestinationFTP]:
     """
     Read the config
     :param file_path:
