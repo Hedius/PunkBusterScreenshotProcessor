@@ -11,7 +11,7 @@ Pylama:
   tags:
     - docker
   script:
-    - python -m pip install pylama
+    - python -m pip install setuptools pylama
     - pylama src
 
 docker-build:
