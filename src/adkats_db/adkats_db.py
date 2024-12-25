@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime
 
-from .MariaDB.Connector import Connector
+from .mariadb.Connector import Connector
 
 
 class AdKatsDB(Connector):

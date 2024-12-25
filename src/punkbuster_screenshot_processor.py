@@ -6,9 +6,9 @@ from configparser import ConfigParser
 from pathlib import Path
 from typing import List, Tuple
 
-from AdKatsDB.AdKatsDB import AdKatsDB
-from FTP.Destination import DestinationFTP
-from FTP.Source import SourceFTP
+from adkats_db.AdKatsDB import AdKatsDB
+from ftp.Destination import DestinationFTP
+from ftp.Source import SourceFTP
 
 
 class Processor:

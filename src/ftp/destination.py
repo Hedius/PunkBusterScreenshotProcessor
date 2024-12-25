@@ -4,7 +4,7 @@ from ftplib import error_perm
 from io import BytesIO
 from typing import List
 
-from FTP.FTPBase import FTPBase
+from ftp.FTPBase import FTPBase
 
 
 class DestinationFTP(FTPBase):
