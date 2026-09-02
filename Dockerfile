@@ -17,7 +17,11 @@ COPY --chown=pythonRun:pythonRun src /usr/src/app
 WORKDIR /usr/src/app
 
 # Install dependencies
-RUN pip3 install --no-cache-dir -r requirements.txt
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends libmariadb3 libmariadb-dev gcc && \
+    pip3 install --no-cache-dir -r requirements.txt && \
+    apt-get purge -y --auto-remove libmariadb-dev gcc && \
+    rm -rf /var/lib/apt/lists/*
 
 RUN chown pythonRun:pythonRun -R /usr/src/app
 

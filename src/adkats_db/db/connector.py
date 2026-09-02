@@ -1,5 +1,5 @@
-import mysql.connector as mariadb
-from mysql.connector import errorcode
+import mariadb
+from mariadb.constants import ERR
 
 
 class Connector:
@@ -24,8 +24,12 @@ class Connector:
         needed.
         """
         # return active connection
-        if self._con and self._con.is_connected():
-            return self._con
+        if self._con:
+            try:
+                if self._con.open:
+                    return self._con
+            except mariadb.Error:
+                pass
 
         # reconnect
         try:
@@ -35,11 +39,11 @@ class Connector:
                                         user=self._user,
                                         password=self._password)
         except mariadb.Error as e:
-            if e.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+            if e.errno == ERR.ER_ACCESS_DENIED_ERROR:
                 raise self.DBException(
                     f'Connection to database {self._database}'
                     ' failed! Invalid username/password!')
-            elif e.errno == errorcode.ER_BAD_DB_ERROR:
+            elif e.errno == ERR.ER_BAD_DB_ERROR:
                 raise self.DBException(
                     f'Database {self._database} does not exist on host'
                     f' {self._host}:{self._port}')
@@ -52,8 +56,12 @@ class Connector:
     def _close(self):
         """close the connection to the MariaDB server"""
         # return active connection
-        if self._con and self._con.is_connected():
-            self._con.close()
+        if self._con:
+            try:
+                if self._con.open:
+                    self._con.close()
+            except mariadb.Error:
+                pass
 
     def cursor(self):
         con = self.connect()
