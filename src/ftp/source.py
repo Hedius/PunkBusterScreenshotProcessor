@@ -5,7 +5,7 @@ from io import BytesIO
 
 from PIL import Image
 
-from ftp.FTPBase import FTPBase
+from ftp.ftp_base import FTPBase
 
 
 class SourceFTP(FTPBase):
