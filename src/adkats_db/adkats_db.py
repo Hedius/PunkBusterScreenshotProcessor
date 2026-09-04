@@ -6,8 +6,9 @@ from .db.connector import Connector
 
 
 class AdKatsDB(Connector):
-    def __init__(self, host, port, user, pw, database):
+    def __init__(self, host, port, user, pw, database, timezone='Europe/Berlin'):
         super().__init__(host, port, database, user, pw)
+        self.timezone = timezone
         self.update_functions()
 
     def update_functions(self):
@@ -51,16 +52,14 @@ class AdKatsDB(Connector):
         Get the latest timestamp for a given server.
         :param server_id: players
         """
-        # ToDo The timezone is hardcoded here... fine for me... i live here :)
-        # But for non EU users bad...
         command = """\
               SELECT
-                  CONVERT_TZ(MAX(timestamp), 'Europe/Berlin', 'GMT') AS timestamp
+                  CONVERT_TZ(MAX(timestamp), %s, 'GMT') AS timestamp
               FROM e4gl_screenshots
               WHERE server_id = %s
               GROUP BY server_id
               """
-        result = self.exec(command, (server_id,))
+        result = self.exec(command, (self.timezone, server_id))
         if len(result) == 0:
             return datetime.now().replace(year=2000)
         timestamp = result[0][0]
@@ -101,9 +100,9 @@ class AdKatsDB(Connector):
         :return:
         """
         commands = """\
-        SELECT add_screenshot(%s, %s, Convert_TZ(%s, 'GMT', 'Europe/Berlin'), %s) AS result;
+        SELECT add_screenshot(%s, %s, Convert_TZ(%s, 'GMT', %s), %s) AS result;
         """
-        args = (server_id, pb_guid, timestamp, url)
+        args = (server_id, pb_guid, timestamp, self.timezone, url)
         con = self.connect()
         cursor = self.cursor()
 

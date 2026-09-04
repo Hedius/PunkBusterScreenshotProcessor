@@ -96,6 +96,7 @@ def read_config(file_path: Path) -> Tuple[int, int, AdKatsDB, List[SourceFTP], D
     section = parser['General']
     check_interval = section.getint('check_interval', 60)
     cleanup_after = section.getint('cleanup_after_days', 60)
+    timezone = section.get('timezone', 'Europe/Berlin')
 
     section = parser['AdKatsDB']
     adk = AdKatsDB(
@@ -104,6 +105,7 @@ def read_config(file_path: Path) -> Tuple[int, int, AdKatsDB, List[SourceFTP], D
         user=section['user'],
         pw=section['pw'],
         database=section['database'],
+        timezone=timezone,
     )
 
     section = parser['Destination']

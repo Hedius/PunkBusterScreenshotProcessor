@@ -73,6 +73,10 @@ check_interval = 60
 # screenshots of banned players are never removed
 cleanup_after_days = 60
 
+# timezone of the game servers / PRoCon DB.
+# defaults to Europe/Berlin if not set.
+timezone = Europe/Berlin
+
 [AdKatsDB]
 host=
 port=3306
