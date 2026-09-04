@@ -14,30 +14,26 @@ def crop(image, comment):
     :param comment: the raw PNG comment string
     :return: cropped PIL image
     """
-    attempted = re.search(
-        r'Attempted:\s*w=(\d+)\s*X\s*h=(\d+)\s*at\s*\(x=(\d+)%,\s*y=(\d+)%\)', comment)
     resulting = re.search(r'Resulting:\s*w=(\d+)\s*X\s*h=(\d+)', comment)
-    if not attempted or not resulting:
+    if not resulting:
         logger.warning('Could not find scaling info in screenshot comment - '
                         'falling back to the static crop.')
         side_crop = 140
         return image.crop((side_crop, 0, image.width - side_crop, 220))
 
-    attempted_w, attempted_h, anchor_x, anchor_y = (int(g) for g in attempted.groups())
     resulting_w, resulting_h = (int(g) for g in resulting.groups())
 
-    # The box itself is horizontally centered inside the real
-    # canvas, which is often wider than the picture because the info text
-    # line below it is longer than the screenshot. There is no such outer
-    # offset vertically. The picture is flush against the top of the canvas.
-    outer_offset_x = (image.width - attempted_w) / 2
-    offset_x = round(outer_offset_x + (attempted_w - resulting_w) * (anchor_x / 100))
-    offset_y = round((attempted_h - resulting_h) * (anchor_y / 100))
+    # The real content is horizontally centered inside the canvas, which is
+    # often wider than the picture because the info text line below it is
+    # longer than the screenshot, but it is always flush against the top -
+    # the "Attempted"/anchor fields turn out to describe the source-image
+    # scaling, not the placement of the result, and are not needed here.
+    offset_x = round((image.width - resulting_w) / 2)
 
     box = (
         max(0, offset_x),
-        max(0, offset_y),
+        0,
         min(image.width, offset_x + resulting_w),
-        min(image.height, offset_y + resulting_h),
+        min(image.height, resulting_h),
     )
     return image.crop(box)
