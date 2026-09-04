@@ -4,10 +4,11 @@ from typing import List, Optional
 
 from loguru import logger
 
+from destination import Destination
 from sftp.sftp_base import SFTPBase, SFTPConnection
 
 
-class DestinationSFTP(SFTPBase):
+class DestinationSFTP(SFTPBase, Destination):
     """
     SFTP Upload logic
     """
@@ -31,46 +32,46 @@ class DestinationSFTP(SFTPBase):
                           private_key_passphrase=private_key_passphrase, base_dir=upload_dir)
         self.public_base = public_base
 
-    def upload_screenshot(self, guid, data, sftp: Optional[SFTPConnection] = None, full=False):
+    def upload_screenshot(self, guid, data, client: Optional[SFTPConnection] = None, full=False):
         """
         Upload a screenshot to the destination SFTP server.
-        Opens a SFTP connection if sftp is none. Returns the connection.
+        Opens a SFTP connection if client is none. Returns the connection.
         :param guid:
         :param data:
-        :param sftp: optional SFTPConnection
+        :param client: optional SFTPConnection
         :param full: indicate that a full unedited screenshot is shared.
         :return: open SFTPConnection
         """
         full_dir = 'full'
-        if not sftp:
-            sftp = self.connect()
+        if not client:
+            client = self.connect()
             try:
-                sftp.sftp_client.mkdir(full_dir)
+                client.sftp_client.mkdir(full_dir)
             except OSError:
                 pass
         directory = f'{full_dir}/' if full else ''
-        sftp.sftp_client.putfo(BytesIO(data), f'{directory}{guid}.jpg')
+        client.sftp_client.putfo(BytesIO(data), f'{directory}{guid}.jpg')
         logger.debug(f'Saved screenshot for {guid} over SFTP.')
-        return sftp
+        return client
 
-    def cleanup_screenshots(self, to_delete: List, sftp: Optional[SFTPConnection] = None):
+    def cleanup_screenshots(self, to_delete: List, client: Optional[SFTPConnection] = None):
         """
         Remove the given files from the disk over SFTP.
         :param to_delete: list containing screenshots
-        :param sftp: optional SFTPConnection
+        :param client: optional SFTPConnection
         :return: open SFTPConnection
         """
-        if not sftp:
-            sftp = self.connect()
+        if not client:
+            client = self.connect()
         for screenshot in to_delete:
             match = re.match(r'.*/([^/]+)$', screenshot.url)
             file = match.group(1)
 
             try:
-                sftp.sftp_client.remove(file)
-                sftp.sftp_client.remove(f'full/{file}')
+                client.sftp_client.remove(file)
+                client.sftp_client.remove(f'full/{file}')
                 logger.info(f'Cleanup> Removed {screenshot.url} from the file system.')
             except OSError as e:
                 logger.info(f'Cleanup> Failed to remove screenshot from file system: {e}.')
 
-        return sftp
+        return client

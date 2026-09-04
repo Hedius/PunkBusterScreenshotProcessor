@@ -4,16 +4,15 @@ import uuid
 from argparse import ArgumentParser
 from configparser import ConfigParser
 from pathlib import Path
-from typing import List, Tuple, Union
+from typing import List, Tuple
 
 from loguru import logger
 
 from adkats_db.adkats_db import AdKatsDB
+from destination import Destination
 from ftp.destination import DestinationFTP
 from ftp.source import SourceFTP
 from sftp.destination import DestinationSFTP
-
-Destination = Union[DestinationFTP, DestinationSFTP]
 
 
 class Processor:
@@ -46,8 +45,8 @@ class Processor:
         6. insert an entry into the procon DB.
         """
         while True:
-            # socket for caching
-            ftp_dest = None
+            # connection for caching
+            client = None
             try:
                 for source in self.sources:
                     try:
@@ -66,22 +65,22 @@ class Processor:
                         url = f'{self.destination.public_base.rstrip("/")}/{guid}.jpg'
 
                         # cropped screenshot
-                        ftp_dest = self.destination.upload_screenshot(guid,
-                                                                      data['data'],
-                                                                      ftp=ftp_dest)
+                        client = self.destination.upload_screenshot(guid,
+                                                                     data['data'],
+                                                                     client=client)
                         # full sized screenshot
-                        ftp_dest = self.destination.upload_screenshot(guid,
-                                                                      data['data_full'],
-                                                                      ftp=ftp_dest,
-                                                                      full=True)
+                        client = self.destination.upload_screenshot(guid,
+                                                                     data['data_full'],
+                                                                     client=client,
+                                                                     full=True)
                         self.adk.add_screenshot(source.server_id, data['pb_guid'],
                                                 data['timestamp'], url)
 
                 to_delete = self.adk.cleanup_screenshots(self.cleanup_after)
-                ftp_dest = self.destination.cleanup_screenshots(to_delete, ftp_dest)
+                client = self.destination.cleanup_screenshots(to_delete, client)
             finally:
-                if ftp_dest:
-                    ftp_dest.quit()
+                if client:
+                    client.quit()
             time.sleep(self.check_interval)
 
 
