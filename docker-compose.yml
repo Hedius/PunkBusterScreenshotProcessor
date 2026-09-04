@@ -8,6 +8,17 @@ services:
       - type: bind
         source: ./config.ini
         target: /usr/src/app/config.ini
+      # Required when [Destination] type=sftp in config.ini. Mount the private key and
+      # known_hosts style host key file next to config.ini and reference them via
+      # private_key_path / host_key_path in config.ini.
+      # - type: bind
+      #   source: ./sftp_id
+      #   target: /usr/src/app/sftp_id
+      #   read_only: true
+      # - type: bind
+      #   source: ./known_hosts
+      #   target: /usr/src/app/known_hosts
+      #   read_only: true
     security_opt:
       - no-new-privileges
     mem_limit: 1000M

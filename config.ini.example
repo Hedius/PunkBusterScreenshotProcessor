@@ -14,16 +14,32 @@ pw=
 database=
 
 [Destination]
+# Destination type: ftp or sftp
+type=ftp
 host=
 port=21
 user=
-pw=
 # Public webserver URL
 public_base=https://bla.com/screenshots/
 # Directory for file uploads
 upload_dir=/
+
+# --- ftp options ---
+pw=
 # Use TLS?
 tls=true
+
+# --- sftp options ---
+# Password login. Optional if a private key is configured below.
+#pw=
+# Path to a private key file. Optional if a password is set above.
+#private_key_path=
+# Passphrase for the private key. Optional.
+#private_key_passphrase=
+# Path to a known_hosts style file containing the server's host key. Required.
+# Generate it with e.g.:
+#   ssh-keyscan -p <port> -H <host> > known_hosts
+#host_key_path=
 
 [Server1]
 host=

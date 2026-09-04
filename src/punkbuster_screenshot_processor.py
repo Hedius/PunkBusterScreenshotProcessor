@@ -4,15 +4,18 @@ import uuid
 from argparse import ArgumentParser
 from configparser import ConfigParser
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 from adkats_db.adkats_db import AdKatsDB
 from ftp.destination import DestinationFTP
 from ftp.source import SourceFTP
+from sftp.destination import DestinationSFTP
+
+Destination = Union[DestinationFTP, DestinationSFTP]
 
 
 class Processor:
-    def __init__(self, adk: AdKatsDB, sources: List[SourceFTP], destination: DestinationFTP,
+    def __init__(self, adk: AdKatsDB, sources: List[SourceFTP], destination: Destination,
                  check_interval=60, cleanup_after=60):
         """
         Init Processor
@@ -80,7 +83,7 @@ class Processor:
             time.sleep(self.check_interval)
 
 
-def read_config(file_path: Path) -> Tuple[int, int, AdKatsDB, List[SourceFTP], DestinationFTP]:
+def read_config(file_path: Path) -> Tuple[int, int, AdKatsDB, List[SourceFTP], Destination]:
     """
     Read the config
     :param file_path:
@@ -103,15 +106,31 @@ def read_config(file_path: Path) -> Tuple[int, int, AdKatsDB, List[SourceFTP], D
     )
 
     section = parser['Destination']
-    destination = DestinationFTP(
-        host=section['host'],
-        port=int(section['port']),
-        user=section['user'],
-        pw=section['pw'],
-        public_base=section['public_base'],
-        upload_dir=section['upload_dir'],
-        tls=section.getboolean('tls'),
-    )
+    dest_type = section.get('type', 'ftp').strip().lower()
+    if dest_type == 'ftp':
+        destination = DestinationFTP(
+            host=section['host'],
+            port=int(section['port']),
+            user=section['user'],
+            pw=section['pw'],
+            public_base=section['public_base'],
+            upload_dir=section['upload_dir'],
+            tls=section.getboolean('tls'),
+        )
+    elif dest_type == 'sftp':
+        destination = DestinationSFTP(
+            host=section['host'],
+            port=int(section['port']),
+            user=section['user'],
+            pw=section.get('pw') or None,
+            private_key_path=section.get('private_key_path') or None,
+            private_key_passphrase=section.get('private_key_passphrase') or None,
+            host_key_path=section['host_key_path'],
+            public_base=section['public_base'],
+            upload_dir=section['upload_dir'],
+        )
+    else:
+        raise RuntimeError(f'Unknown destination type: {dest_type}')
 
     sources = []
     for title in parser.sections():

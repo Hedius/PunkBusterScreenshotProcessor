@@ -1,3 +1,4 @@
 Pillow==12.3.0
 mariadb==1.1.14
 python-dateutil==2.9.0.post0
+paramiko==5.0.0

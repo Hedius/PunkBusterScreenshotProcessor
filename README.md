@@ -7,7 +7,7 @@
 # What does this do
 1. Pull punkbuster screenshots from several servers over FTP.
 2. Convert them to JPEG and crop them to remove the integrated text information.
-3. Upload them to a destination FTP/FTPs server with a random guid.
+3. Upload them to a destination FTP/FTPs or SFTP server with a random guid.
    1. The root folder contains the cropped version. Furthermore, the full
       screenshot is placed in the subfolder **full**.
 4. Store the date in a table in the PRoCon DB.
@@ -81,16 +81,32 @@ pw=
 database=
 
 [Destination]
+# Destination type: ftp or sftp
+type=ftp
 host=
 port=21
 user=
-pw=
 # Public webserver URL
 public_base=https://bla.com/screenshots/
 # Directory for file uploads
 upload_dir=/
+
+# --- ftp options ---
+pw=
 # Use TLS?
 tls=true
+
+# --- sftp options ---
+# Password login. Optional if a private key is configured below.
+#pw=
+# Path to a private key file. Optional if a password is set above.
+#private_key_path=
+# Passphrase for the private key. Optional.
+#private_key_passphrase=
+# Path to a known_hosts style file containing the server's host key. Required.
+# Generate it with e.g.:
+#   ssh-keyscan -p <port> -H <host> > known_hosts
+#host_key_path=
 
 [Server1]
 host=
@@ -108,9 +124,16 @@ user=
 pw=
 base_dir=pb/svss
 ```
-    
+
+## 2. SFTP destination
+When `type=sftp` is set in `[Destination]`, the private key file (`private_key_path`) and the
+known_hosts style host key file (`host_key_path`) must be mounted into the container next to
+`config.ini` (see `docker-compose.yml`), and must be readable by the container's runtime user
+(UID/GID `4000` by default, see `Dockerfile`).
+
 # License
 This project is free software and licensed under the GPLv3.
 
+Disclaimer. Part of this project has been coded with AI tools to save me some time (SFTP).
 
 ``
