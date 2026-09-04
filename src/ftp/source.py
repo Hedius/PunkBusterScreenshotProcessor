@@ -6,6 +6,7 @@ from PIL import Image
 from loguru import logger
 
 from ftp.ftp_base import FTPBase
+from image_processing import crop
 
 
 class SourceFTP(FTPBase):
@@ -60,11 +61,11 @@ class SourceFTP(FTPBase):
             full_data = BytesIO()
             image.save(full_data, format='JPEG')
 
-            comment = image.info['comment'].split('\n')
-            match = re.match(r'^\*(.+)\*\s(.+)?', comment[2])
-            side_crop = 140
-            result = image.crop((side_crop, 0, image.width - side_crop, 220))
+            comment = image.info['comment']
+            lines = comment.split('\n')
+            match = re.match(r'^\*(.+)\*', lines[2])
 
+            result = crop.crop(image, comment)
             processed_data = BytesIO()
             result.save(processed_data, format='JPEG')
 
