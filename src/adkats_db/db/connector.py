@@ -81,8 +81,9 @@ class Connector:
 
         try:
             cursor.execute(query, args)
-            for entry in cursor:
-                results.append(entry)
+            if cursor.description is not None:
+                for entry in cursor:
+                    results.append(entry)
             con.commit()
         except mariadb.Error as e:
             raise self.SQLException(f'Execution of query failed!: {e}')
