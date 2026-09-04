@@ -1,5 +1,6 @@
 from datetime import datetime
 
+import mariadb
 from loguru import logger
 
 from .db.connector import Connector
@@ -26,15 +27,16 @@ class AdKatsDB(Connector):
         BEGIN
             SET @error_text = 'Successful';
 
-            -- get player_id
-            SELECT PlayerID INTO @player_id FROM tbl_playerdata pd WHERE pd.PBGUID = pb_guid;
+            SELECT PlayerID INTO @player_id FROM tbl_playerdata pd WHERE pd.PBGUID = pb_guid
+                LIMIT 1;
             IF @player_id IS NULL THEN
                 SET @error_text = 'Failed to insert screenshot. Unknown Punkbuster ID';
                 RETURN @error_text;
             END IF;
 
             -- get server_id
-            SELECT ServerID INTO @server_id FROM tbl_server s WHERE s.ServerID = server_id;
+            SELECT ServerID INTO @server_id FROM tbl_server s WHERE s.ServerID = server_id
+                LIMIT 1;
             IF @server_id IS NULL THEN
                 SET @error_text = 'Invalid server ID given';
                 RETURN @error_text;
@@ -106,15 +108,20 @@ class AdKatsDB(Connector):
         con = self.connect()
         cursor = self.cursor()
 
-        cursor.execute(commands, args)
-        result = cursor.fetchone().result
-        if result == 'Successful':
-            con.commit()
-            logger.info(f'Added a new screenshot to the DB: {url}')
-        else:
+        try:
+            cursor.execute(commands, args)
+            result = cursor.fetchone().result
+            if result == 'Successful':
+                con.commit()
+                logger.info(f'Added a new screenshot to the DB: {url}')
+            else:
+                con.rollback()
+                logger.critical(f'Failed to add'
+                                f' new screenshot to the DB: {result}')
+        except mariadb.Error as e:
             con.rollback()
-            logger.critical(f'Failed to add'
-                            f' new screenshot to the DB: {result}')
-
-        cursor.close()
-        con.close()
+            logger.critical(f'Failed to add new screenshot to the DB for guid'
+                            f' {pb_guid}: {e}')
+        finally:
+            cursor.close()
+            con.close()
