@@ -3,3 +3,4 @@ venv
 *__pycache__*
 known_hosts
 sftp_id
+/raw_screenshots/

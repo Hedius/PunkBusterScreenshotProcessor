@@ -23,17 +23,15 @@ def crop(image, comment):
 
     resulting_w, resulting_h = (int(g) for g in resulting.groups())
 
-    # The real content is horizontally centered inside the canvas, which is
-    # often wider than the picture because the info text line below it is
-    # longer than the screenshot, but it is always flush against the top -
-    # the "Attempted"/anchor fields turn out to describe the source-image
-    # scaling, not the placement of the result, and are not needed here.
+    # Should be the left border of the image.
     offset_x = round((image.width - resulting_w) / 2)
+    # 10px from top
+    top_border = 10
 
     box = (
         max(0, offset_x),
-        0,
+        top_border,
         min(image.width, offset_x + resulting_w),
-        min(image.height, resulting_h),
+        min(image.height, top_border + resulting_h),
     )
     return image.crop(box)
