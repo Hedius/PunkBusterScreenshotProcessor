@@ -26,7 +26,12 @@ def crop(image, comment):
     attempted_w, attempted_h, anchor_x, anchor_y = (int(g) for g in attempted.groups())
     resulting_w, resulting_h = (int(g) for g in resulting.groups())
 
-    offset_x = round((attempted_w - resulting_w) * (anchor_x / 100))
+    # The box itself is horizontally centered inside the real
+    # canvas, which is often wider than the picture because the info text
+    # line below it is longer than the screenshot. There is no such outer
+    # offset vertically. The picture is flush against the top of the canvas.
+    outer_offset_x = (image.width - attempted_w) / 2
+    offset_x = round(outer_offset_x + (attempted_w - resulting_w) * (anchor_x / 100))
     offset_y = round((attempted_h - resulting_h) * (anchor_y / 100))
 
     box = (
