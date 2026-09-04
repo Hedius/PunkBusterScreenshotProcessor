@@ -1,9 +1,9 @@
-import logging
 import re
 from dateutil import parser
 from io import BytesIO
 
 from PIL import Image
+from loguru import logger
 
 from ftp.ftp_base import FTPBase
 
@@ -53,7 +53,7 @@ class SourceFTP(FTPBase):
             try:
                 data = self.read_binary(ftp, file_name)
             except Exception as e:
-                logging.critical(
+                logger.critical(
                     f'Failed to fetch {file_name} from {self.server_id} - Ignoring: {e}')
                 continue
             image = Image.open(BytesIO(data))

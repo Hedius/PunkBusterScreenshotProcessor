@@ -1,7 +1,8 @@
-import logging
 import re
 from io import BytesIO
 from typing import List, Optional
+
+from loguru import logger
 
 from sftp.sftp_base import SFTPBase, SFTPConnection
 
@@ -49,7 +50,7 @@ class DestinationSFTP(SFTPBase):
                 pass
         directory = f'{full_dir}/' if full else ''
         sftp.sftp_client.putfo(BytesIO(data), f'{directory}{guid}.jpg')
-        logging.debug(f'Saved screenshot for {guid} over SFTP.')
+        logger.debug(f'Saved screenshot for {guid} over SFTP.')
         return sftp
 
     def cleanup_screenshots(self, to_delete: List, sftp: Optional[SFTPConnection] = None):
@@ -68,8 +69,8 @@ class DestinationSFTP(SFTPBase):
             try:
                 sftp.sftp_client.remove(file)
                 sftp.sftp_client.remove(f'full/{file}')
-                logging.info(f'Cleanup> Removed {screenshot.url} from the file system.')
+                logger.info(f'Cleanup> Removed {screenshot.url} from the file system.')
             except OSError as e:
-                logging.info(f'Cleanup> Failed to remove screenshot from file system: {e}.')
+                logger.info(f'Cleanup> Failed to remove screenshot from file system: {e}.')
 
         return sftp

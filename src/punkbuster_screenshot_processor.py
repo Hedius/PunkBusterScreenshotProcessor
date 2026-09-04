@@ -1,10 +1,12 @@
-import logging
+import sys
 import time
 import uuid
 from argparse import ArgumentParser
 from configparser import ConfigParser
 from pathlib import Path
 from typing import List, Tuple, Union
+
+from loguru import logger
 
 from adkats_db.adkats_db import AdKatsDB
 from ftp.destination import DestinationFTP
@@ -52,8 +54,8 @@ class Processor:
                         last_timestamp = self.adk.get_latest_timestamp(source.server_id)
                         screenshots = source.fetch(last_timestamp)
                     except Exception as e:
-                        logging.critical(f'Failed to fetch server {source.server_id}!'
-                                         f' Skipping it. - Error: {e}')
+                        logger.critical(f'Failed to fetch server {source.server_id}!'
+                                        f' Skipping it. - Error: {e}')
                         continue
 
                     for screenshot_id in screenshots:
@@ -154,7 +156,8 @@ def read_config(file_path: Path) -> Tuple[int, int, AdKatsDB, List[SourceFTP], D
 
 
 def main():
-    logging.basicConfig(level=logging.INFO)
+    logger.remove()
+    logger.add(sys.stderr, level='INFO')
     parser = ArgumentParser(description='E4GL Screenshot Processor')
     parser.add_argument(
         '-c', '--config',

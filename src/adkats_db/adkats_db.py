@@ -1,5 +1,6 @@
-import logging
 from datetime import datetime
+
+from loguru import logger
 
 from .db.connector import Connector
 
@@ -87,7 +88,7 @@ class AdKatsDB(Connector):
         """
         for screenshot in result:
             self.exec(command, (screenshot.screenshot_id,))
-            logging.info(f'Cleanup> Removed {screenshot.url} from the DB.')
+            logger.info(f'Cleanup> Removed {screenshot.url} from the DB.')
         return result
 
     def add_screenshot(self, server_id, pb_guid, timestamp, url):
@@ -110,11 +111,11 @@ class AdKatsDB(Connector):
         result = cursor.fetchone().result
         if result == 'Successful':
             con.commit()
-            logging.info(f'Added a new screenshot to the DB: {url}')
+            logger.info(f'Added a new screenshot to the DB: {url}')
         else:
             con.rollback()
-            logging.critical(f'Failed to add'
-                             f' new screenshot to the DB: {result}')
+            logger.critical(f'Failed to add'
+                            f' new screenshot to the DB: {result}')
 
         cursor.close()
         con.close()
