@@ -6,13 +6,13 @@ stages:
 variables:
   DOCKER_HUB_REPO: "hedius/punkbusterscreenshotprocessor"
 
-Pylama:
+Ruff:
   stage: code quality
   tags:
     - docker
   script:
-    - python -m pip install setuptools pylama
-    - pylama src
+    - python -m pip install ruff==0.16.6
+    - ruff check src
 
 docker-build:
   # Official docker image.
