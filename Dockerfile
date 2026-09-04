@@ -27,4 +27,4 @@ RUN chown pythonRun:pythonRun -R /usr/src/app
 
 USER pythonRun:pythonRun
 
-CMD ["python3", "PunkBusterScreenshotProcessor.py", "-c", "config.ini"]
+CMD ["python3", "punkbuster_screenshot_processor.py", "-c", "config.ini"]
