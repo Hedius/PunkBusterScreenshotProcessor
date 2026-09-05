@@ -10,6 +10,21 @@ cleanup_after_days = 60
 # set to false to keep the original PNGs.
 compress = true
 
+[ESPDetection]
+# Scan every screenshot for cheat ESP overlays (player boxes, skeletons,
+# name/distance labels, health bars) before it is compressed.
+# Flagged screenshots are logged at WARNING and are never removed by the
+# cleanup, so they stay around until an admin has looked at them.
+enabled = true
+
+# Override the threshold fitted into the model (0-100). Lower catches more
+# cheaters and produces more false positives. Leave unset to use the model's
+# own operating point.
+#threshold =
+
+# Path to the fitted model. Leave unset to use the one shipped with the code.
+#model_path =
+
 [AdKatsDB]
 host=
 port=3306

@@ -3,3 +3,5 @@ mariadb==1.1.14
 python-dateutil==2.9.0.post0
 paramiko==5.0.0
 loguru==0.7.3
+numpy==2.5.2
+opencv-python-headless==5.0.0.93

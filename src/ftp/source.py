@@ -8,13 +8,19 @@ from loguru import logger
 from ftp.ftp_base import FTPBase
 from image_processing import crop
 
+try:
+    from image_processing import esp_detection
+except ImportError:  # numpy / OpenCV absent - ESP detection stays optional
+    esp_detection = None
+
 
 class SourceFTP(FTPBase):
     """
     Source FTP server handler.
     Downloads images, converts and crops them.
     """
-    def __init__(self, server_id, host, port, user, pw, base_dir, compress=True):
+    def __init__(self, server_id, host, port, user, pw, base_dir, compress=True,
+                 esp_model=None, esp_threshold=None):
         """
         Source FTP server handler.
         Downloads images, converts and crops them.
@@ -25,10 +31,15 @@ class SourceFTP(FTPBase):
         :param pw:
         :param base_dir:
         :param compress: convert the screenshots to JPEG. Keeps PNG if disabled.
+        :param esp_model: loaded EspModel. Screenshots are scanned for cheat ESP
+            overlays when given, and left unscanned when None.
+        :param esp_threshold: override the threshold fitted into the model.
         """
         super().__init__(host, port, user, pw, base_dir)
         self.server_id = server_id
         self.compress = compress
+        self.esp_model = esp_model
+        self.esp_threshold = esp_threshold
 
     @property
     def image_format(self):
@@ -76,6 +87,10 @@ class SourceFTP(FTPBase):
             match = re.match(r'^\*(.+)\*', lines[2])
 
             result = crop.crop(image, comment)
+            # Scan before saving: the detector wants the cropped frame as pixels,
+            # not the compressed bytes, because JPEG artifacts cost recall.
+            screenshots[file_name]['esp'] = self.detect_esp(result)
+
             processed_data = BytesIO()
             result.save(processed_data, format=self.image_format)
 
@@ -83,6 +98,25 @@ class SourceFTP(FTPBase):
             screenshots[file_name]['data'] = processed_data.getvalue()
             screenshots[file_name]['data_full'] = full_data.getvalue()
         return screenshots
+
+    def detect_esp(self, image):
+        """
+        Score a cropped screenshot for cheat ESP overlays.
+
+        Never raises: screenshot collection is the job here, and an unscanned
+        screenshot is far better than a crashed poll loop.
+        :param image: cropped PIL image, uncompressed
+        :return: EspResult, or None when detection is disabled or failed
+        """
+        if self.esp_model is None:
+            return None
+        try:
+            return esp_detection.detect(image, model=self.esp_model,
+                                        threshold=self.esp_threshold, explain=False)
+        except Exception as e:
+            logger.critical(f'ESP detection failed on a screenshot from server'
+                            f' {self.server_id} - storing it unscanned: {e}')
+            return None
 
 
 def get_screenshots_to_fetch(data, min_timestamp):
