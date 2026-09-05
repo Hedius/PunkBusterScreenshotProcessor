@@ -26,13 +26,16 @@ If you have any questions pls contact Hedius#0001 on Discord.
 ```sql
 create table e4gl_screenshots
 (
-    screenshot_id int UNSIGNED         auto_increment,
-    server_id     smallint(5) UNSIGNED not null,
-    player_id     int(10) UNSIGNED     not null,
-    timestamp     datetime             not null,
-    url           VARCHAR(128)         not null,
-    constraint e4gl_screenshots_pk
-        primary key (screenshot_id),
+    screenshot_id int unsigned auto_increment
+        primary key,
+    server_id     smallint unsigned not null,
+    player_id     int unsigned      not null,
+    timestamp     datetime          not null,
+    guid          char(36)          null,
+    url           varchar(128)      not null,
+    full_url      varchar(128)      null,
+    constraint e4gl_screenshots_guid_uindex
+        unique (guid),
     constraint e4gl_screenshots_tbl_playerdata_fk
         foreign key (player_id) references tbl_playerdata (PlayerID)
             on delete cascade,

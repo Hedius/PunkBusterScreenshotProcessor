@@ -8,11 +8,15 @@ from typing import List, Tuple
 
 from loguru import logger
 
-from adkats_db.adkats_db import AdKatsDB
+from adkats_db.adkats_db import AdKatsDB, DuplicateGuidError
 from destination import Destination
 from ftp.destination import DestinationFTP
 from ftp.source import SourceFTP
 from sftp.destination import DestinationSFTP
+
+# random screenshot GUIDs can (extremely rarely) collide with an existing
+# entry and violate the DB's unique index. Regenerate the GUID and retry.
+MAX_INSERT_ATTEMPTS = 5
 
 
 class Processor:
@@ -61,21 +65,36 @@ class Processor:
                         data = screenshots[screenshot_id]
                         if 'data' not in data:
                             continue
-                        guid = uuid.uuid4()
-                        url = (f'{self.destination.public_base.rstrip("/")}/'
-                               f'{guid}.{self.destination.file_extension}')
 
-                        # cropped screenshot
-                        client = self.destination.upload_screenshot(guid,
-                                                                     data['data'],
-                                                                     client=client)
-                        # full sized screenshot
-                        client = self.destination.upload_screenshot(guid,
-                                                                     data['data_full'],
-                                                                     client=client,
-                                                                     full=True)
-                        self.adk.add_screenshot(source.server_id, data['pb_guid'],
-                                                data['timestamp'], url)
+                        for attempt in range(1, MAX_INSERT_ATTEMPTS + 1):
+                            guid = uuid.uuid4()
+                            base = self.destination.public_base.rstrip("/")
+                            url = f'{base}/{guid}.{self.destination.file_extension}'
+                            full_url = (f'{base}/full/'
+                                       f'{guid}.{self.destination.file_extension}')
+
+                            # cropped screenshot
+                            client = self.destination.upload_screenshot(guid,
+                                                                         data['data'],
+                                                                         client=client)
+                            # full sized screenshot
+                            client = self.destination.upload_screenshot(guid,
+                                                                         data['data_full'],
+                                                                         client=client,
+                                                                         full=True)
+                            try:
+                                self.adk.add_screenshot(source.server_id, data['pb_guid'],
+                                                        data['timestamp'], guid, url,
+                                                        full_url)
+                                break
+                            except DuplicateGuidError:
+                                logger.warning(f'Screenshot GUID {guid} collided with an'
+                                              f' existing entry, retrying'
+                                              f' ({attempt}/{MAX_INSERT_ATTEMPTS})...')
+                        else:
+                            logger.critical('Failed to add screenshot to the DB after'
+                                            f' {MAX_INSERT_ATTEMPTS} attempts due to'
+                                            ' repeated GUID collisions.')
 
                 to_delete = self.adk.cleanup_screenshots(self.cleanup_after)
                 client = self.destination.cleanup_screenshots(to_delete, client)

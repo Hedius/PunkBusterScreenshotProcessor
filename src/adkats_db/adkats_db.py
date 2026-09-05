@@ -2,8 +2,13 @@ from datetime import datetime
 
 import mariadb
 from loguru import logger
+from mariadb.constants import ERR
 
 from .db.connector import Connector
+
+
+class DuplicateGuidError(Exception):
+    """Raised when a screenshot's random GUID collides with an existing entry."""
 
 
 class AdKatsDB(Connector):
@@ -22,7 +27,9 @@ class AdKatsDB(Connector):
         CREATE OR REPLACE FUNCTION add_screenshot(server_id SMALLINT UNSIGNED,
                                                   pb_guid TEXT,
                                                   pb_timestamp DATETIME,
-                                                  public_url TEXT)
+                                                  screenshot_guid CHAR(36),
+                                                  public_url TEXT,
+                                                  public_full_url TEXT)
                                                   RETURNS TEXT
         BEGIN
             SET @error_text = 'Successful';
@@ -42,8 +49,9 @@ class AdKatsDB(Connector):
                 RETURN @error_text;
             END IF;
 
-            INSERT INTO e4gl_screenshots(server_id, player_id, timestamp, url)
-            VALUES(@server_id, @player_id, pb_timestamp, public_url);
+            INSERT INTO e4gl_screenshots(server_id, player_id, timestamp, guid, url, full_url)
+            VALUES(@server_id, @player_id, pb_timestamp, screenshot_guid, public_url,
+                   public_full_url);
             RETURN @error_text;
         END;
         """
@@ -92,19 +100,22 @@ class AdKatsDB(Connector):
             logger.info(f'Cleanup> Removed {screenshot.url} from the DB.')
         return result
 
-    def add_screenshot(self, server_id, pb_guid, timestamp, url):
+    def add_screenshot(self, server_id, pb_guid, timestamp, guid, url, full_url):
         """
         Insert the given screenshot to the procon database.
         :param server_id:
-        :param pb_guid:
+        :param pb_guid: PunkBuster GUID of the player, used to resolve the player_id.
         :param timestamp:
+        :param guid: random UUID identifying this screenshot. Unique in the DB.
         :param url:
-        :return:
+        :param full_url:
+        :raises DuplicateGuidError: if guid already exists in the DB. Callers should
+            retry with a freshly generated guid.
         """
         commands = """\
-        SELECT add_screenshot(%s, %s, Convert_TZ(%s, 'GMT', %s), %s) AS result;
+        SELECT add_screenshot(%s, %s, Convert_TZ(%s, 'GMT', %s), %s, %s, %s) AS result;
         """
-        args = (server_id, pb_guid, timestamp, self.timezone, url)
+        args = (server_id, pb_guid, timestamp, self.timezone, str(guid), url, full_url)
         con = self.connect()
         cursor = self.cursor()
 
@@ -120,6 +131,9 @@ class AdKatsDB(Connector):
                                 f' new screenshot to the DB: {result}')
         except mariadb.Error as e:
             con.rollback()
+            if e.errno == ERR.ER_DUP_ENTRY:
+                raise DuplicateGuidError(
+                    f'Screenshot GUID {guid} already exists in the DB') from e
             logger.critical(f'Failed to add new screenshot to the DB for guid'
                             f' {pb_guid}: {e}')
         finally:

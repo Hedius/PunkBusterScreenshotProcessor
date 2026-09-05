@@ -4,3 +4,4 @@ venv
 known_hosts
 sftp_id
 /raw_screenshots/
+/results/
