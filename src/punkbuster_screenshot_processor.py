@@ -62,7 +62,8 @@ class Processor:
                         if 'data' not in data:
                             continue
                         guid = uuid.uuid4()
-                        url = f'{self.destination.public_base.rstrip("/")}/{guid}.jpg'
+                        url = (f'{self.destination.public_base.rstrip("/")}/'
+                               f'{guid}.{self.destination.file_extension}')
 
                         # cropped screenshot
                         client = self.destination.upload_screenshot(guid,
@@ -97,6 +98,7 @@ def read_config(file_path: Path) -> Tuple[int, int, AdKatsDB, List[SourceFTP], D
     check_interval = section.getint('check_interval', 60)
     cleanup_after = section.getint('cleanup_after_days', 60)
     timezone = section.get('timezone', 'Europe/Berlin')
+    compress = section.getboolean('compress', True)
 
     section = parser['AdKatsDB']
     adk = AdKatsDB(
@@ -119,6 +121,7 @@ def read_config(file_path: Path) -> Tuple[int, int, AdKatsDB, List[SourceFTP], D
             public_base=section['public_base'],
             upload_dir=section['upload_dir'],
             tls=section.getboolean('tls'),
+            compress=compress,
         )
     elif dest_type == 'sftp':
         destination = DestinationSFTP(
@@ -131,6 +134,7 @@ def read_config(file_path: Path) -> Tuple[int, int, AdKatsDB, List[SourceFTP], D
             host_key_path=section['host_key_path'],
             public_base=section['public_base'],
             upload_dir=section['upload_dir'],
+            compress=compress,
         )
     else:
         raise RuntimeError(f'Unknown destination type: {dest_type}')
@@ -147,6 +151,7 @@ def read_config(file_path: Path) -> Tuple[int, int, AdKatsDB, List[SourceFTP], D
             user=section['user'],
             pw=section['pw'],
             base_dir=section['base_dir'],
+            compress=compress,
         )
         sources.append(source)
 

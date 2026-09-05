@@ -13,7 +13,7 @@ class DestinationFTP(FTPBase, Destination):
     """
     FTP Upload logic
     """
-    def __init__(self, host, port, user, pw, public_base, upload_dir, tls):
+    def __init__(self, host, port, user, pw, public_base, upload_dir, tls, compress=True):
         """
         FTP Uploader to destination
         :param host:
@@ -23,9 +23,11 @@ class DestinationFTP(FTPBase, Destination):
         :param public_base: http base / URL
         :param upload_dir:
         :param tls:
+        :param compress: upload JPEGs instead of PNGs.
         """
         super().__init__(host, port, user, pw, upload_dir, tls=tls)
         self.public_base = public_base
+        self.compress = compress
 
     def upload_screenshot(self, guid, data, client=None, full=False):
         """
@@ -45,7 +47,7 @@ class DestinationFTP(FTPBase, Destination):
             except error_perm:
                 pass
         directory = f'{full_dir}/' if full else ''
-        client.storbinary(f'STOR {directory}{guid}.jpg', BytesIO(data))
+        client.storbinary(f'STOR {directory}{guid}.{self.file_extension}', BytesIO(data))
         logger.debug(f'Saved screenshot for {guid} over FTP.')
         return client
 

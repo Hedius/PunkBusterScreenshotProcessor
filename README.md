@@ -7,6 +7,7 @@
 # What does this do
 1. Pull punkbuster screenshots from several servers over FTP.
 2. Convert them to JPEG and crop them to remove the integrated text information.
+   1. Set `compress = false` in the config to keep the original PNGs instead.
 3. Upload them to a destination FTP/FTPs or SFTP server with a random guid.
    1. The root folder contains the cropped version. Furthermore, the full
       screenshot is placed in the subfolder **full**.
@@ -76,6 +77,11 @@ cleanup_after_days = 60
 # timezone of the game servers / PRoCon DB.
 # defaults to Europe/Berlin if not set.
 timezone = Europe/Berlin
+
+# convert the screenshots to JPEG to save disk space.
+# set to false to keep the original PNGs.
+# defaults to true if not set.
+compress = true
 
 [AdKatsDB]
 host=

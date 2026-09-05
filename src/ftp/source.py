@@ -14,7 +14,7 @@ class SourceFTP(FTPBase):
     Source FTP server handler.
     Downloads images, converts and crops them.
     """
-    def __init__(self, server_id, host, port, user, pw, base_dir):
+    def __init__(self, server_id, host, port, user, pw, base_dir, compress=True):
         """
         Source FTP server handler.
         Downloads images, converts and crops them.
@@ -24,9 +24,19 @@ class SourceFTP(FTPBase):
         :param user:
         :param pw:
         :param base_dir:
+        :param compress: convert the screenshots to JPEG. Keeps PNG if disabled.
         """
         super().__init__(host, port, user, pw, base_dir)
         self.server_id = server_id
+        self.compress = compress
+
+    @property
+    def image_format(self):
+        """
+        PIL format the screenshots are saved with.
+        :return: JPEG for compressed screenshots, otherwise PNG
+        """
+        return 'JPEG' if self.compress else 'PNG'
 
     def fetch(self, min_timestamp):
         """
@@ -45,7 +55,7 @@ class SourceFTP(FTPBase):
 
     def fetch_screenshots(self, ftp, screenshots):
         """
-        Downloads and converts the given screenshots to JPEG.
+        Downloads and converts the given screenshots to JPEG or PNG.
         :param ftp:
         :param screenshots:
         :return:
@@ -59,7 +69,7 @@ class SourceFTP(FTPBase):
                 continue
             image = Image.open(BytesIO(data))
             full_data = BytesIO()
-            image.save(full_data, format='JPEG')
+            image.save(full_data, format=self.image_format)
 
             comment = image.info['comment']
             lines = comment.split('\n')
@@ -67,7 +77,7 @@ class SourceFTP(FTPBase):
 
             result = crop.crop(image, comment)
             processed_data = BytesIO()
-            result.save(processed_data, format='JPEG')
+            result.save(processed_data, format=self.image_format)
 
             screenshots[file_name]['pb_guid'] = match.group(1)
             screenshots[file_name]['data'] = processed_data.getvalue()

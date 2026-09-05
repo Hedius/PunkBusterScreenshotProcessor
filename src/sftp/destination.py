@@ -13,7 +13,7 @@ class DestinationSFTP(SFTPBase, Destination):
     SFTP Upload logic
     """
     def __init__(self, host, port, user, host_key_path, public_base, upload_dir, pw=None,
-                 private_key_path=None, private_key_passphrase=None):
+                 private_key_path=None, private_key_passphrase=None, compress=True):
         """
         SFTP Uploader to destination
         :param host:
@@ -26,11 +26,13 @@ class DestinationSFTP(SFTPBase, Destination):
         :param pw: password. Optional if a private key is used.
         :param private_key_path: path to a private key file. Optional if a password is used.
         :param private_key_passphrase: passphrase for the private key. Optional.
+        :param compress: upload JPEGs instead of PNGs.
         """
         super().__init__(host, port, user, host_key_path, pw=pw,
                           private_key_path=private_key_path,
                           private_key_passphrase=private_key_passphrase, base_dir=upload_dir)
         self.public_base = public_base
+        self.compress = compress
 
     def upload_screenshot(self, guid, data, client: Optional[SFTPConnection] = None, full=False):
         """
@@ -50,7 +52,7 @@ class DestinationSFTP(SFTPBase, Destination):
             except OSError:
                 pass
         directory = f'{full_dir}/' if full else ''
-        client.sftp_client.putfo(BytesIO(data), f'{directory}{guid}.jpg')
+        client.sftp_client.putfo(BytesIO(data), f'{directory}{guid}.{self.file_extension}')
         logger.debug(f'Saved screenshot for {guid} over SFTP.')
         return client
 

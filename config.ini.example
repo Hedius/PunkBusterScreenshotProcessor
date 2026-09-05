@@ -6,6 +6,10 @@ check_interval = 60
 # screenshots of banned players are never removed
 cleanup_after_days = 60
 
+# convert the screenshots to JPEG to save disk space.
+# set to false to keep the original PNGs.
+compress = true
+
 [AdKatsDB]
 host=
 port=3306

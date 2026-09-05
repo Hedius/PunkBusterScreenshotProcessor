@@ -7,6 +7,15 @@ class Destination(ABC):
     Common interface for screenshot upload destinations (e.g. FTP, SFTP).
     """
     public_base: str
+    compress: bool
+
+    @property
+    def file_extension(self):
+        """
+        File extension of the uploaded screenshots.
+        :return: jpg for compressed screenshots, otherwise png
+        """
+        return 'jpg' if self.compress else 'png'
 
     @abstractmethod
     def upload_screenshot(self, guid, data, client=None, full=False):
